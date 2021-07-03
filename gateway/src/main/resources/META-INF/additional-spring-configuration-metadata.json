@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "user.token.key",
+      "type": "java.lang.String",
+      "description": "用户Token在Redis中保存时的文件夹名."
+    }
+  ]
+}
