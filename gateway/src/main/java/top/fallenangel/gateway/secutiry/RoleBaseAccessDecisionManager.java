@@ -18,7 +18,7 @@ public class RoleBaseAccessDecisionManager implements AccessDecisionManager {
     public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes) throws AccessDeniedException, InsufficientAuthenticationException {
         if (authentication.getDetails() instanceof UserDTO) {
             UserDTO user = (UserDTO) authentication.getDetails();
-            String authority = user.getAuthorities().stream().findFirst().orElseThrow().getAuthority();
+            String authority = user.getAuthorities().stream().findFirst().orElseThrow(() -> new SecurityException("authentication 中的用户对象没有角色，检查loadUser部分！")).getAuthority();
             SecurityConfig config = new SecurityConfig(authority);
 
             if (configAttributes.contains(config)) {

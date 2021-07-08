@@ -28,7 +28,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new UsernameNotFoundException("不存在这样的用户：" + username);
         }
 
-        System.out.println("登录中...");
         return new UserDTO(user);
     }
 }

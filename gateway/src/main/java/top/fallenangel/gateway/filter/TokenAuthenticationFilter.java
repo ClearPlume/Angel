@@ -1,15 +1,12 @@
 package top.fallenangel.gateway.filter;
 
-import com.auth0.jwt.exceptions.JWTVerificationException;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import top.fallenangel.common.Util;
-import top.fallenangel.gateway.dto.UserDTO;
-import top.fallenangel.gateway.repository.UserRepository;
+import top.fallenangel.gateway.util.AuthenticationUtil;
 import top.fallenangel.gateway.util.TokenUtil;
 import top.fallenangel.response.ResponseCode;
 import top.fallenangel.response.Result;
@@ -21,13 +18,15 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class TokenAuthenticationFilter extends BasicAuthenticationFilter {
-    private final UserRepository userRepository;
     private final TokenUtil tokenUtil;
+    private final AuthenticationUtil authenticationUtil;
+    private final StringRedisTemplate redisTemplate;
 
-    public TokenAuthenticationFilter(AuthenticationManager authenticationManager, UserRepository userRepository, TokenUtil tokenUtil) {
+    public TokenAuthenticationFilter(AuthenticationManager authenticationManager, TokenUtil tokenUtil, AuthenticationUtil authenticationUtil, StringRedisTemplate redisTemplate) {
         super(authenticationManager);
-        this.userRepository = userRepository;
         this.tokenUtil = tokenUtil;
+        this.authenticationUtil = authenticationUtil;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -39,31 +38,37 @@ public class TokenAuthenticationFilter extends BasicAuthenticationFilter {
             return;
         }
 
+        if (!request.getRequestURI().equals("/token/refresh")) {
+            boolean tokenExpired;
+            try {
+                String tokenKey = tokenUtil.getRedisKey(tokenUtil.getUsername(token), "token");
+                String tokenFromRedis = redisTemplate.opsForValue().get(tokenKey);
+                tokenExpired = tokenUtil.isExpiration(tokenFromRedis);
+            } catch (NullPointerException e) {
+                Util.responseJson(response, Result.create(ResponseCode.TOKEN_EXPIRED));
+                return;
+            } catch (Exception e) {
+                Util.responseJson(response, Result.create(ResponseCode.TOKEN_INVALID));
+                return;
+            }
+
+            if (tokenExpired) {
+                Util.responseJson(response, Result.create(ResponseCode.TOKEN_EXPIRED));
+                return;
+            }
+        }
+
         SecurityContext securityContext = SecurityContextHolder.getContext();
 
         if (securityContext.getAuthentication() == null) {
             try {
-                securityContext.setAuthentication(authentication(token));
-            } catch (JWTVerificationException e) {
+                securityContext.setAuthentication(authenticationUtil.authentication(token));
+            } catch (Exception e) {
                 Util.responseJson(response, Result.create(ResponseCode.TOKEN_INVALID));
                 return;
             }
         }
 
         super.doFilterInternal(request, response, chain);
-    }
-
-    private Authentication authentication(String token) throws JWTVerificationException {
-        String username = tokenUtil.getUsername(token);
-        UserDTO userDTO = new UserDTO(userRepository.findByUsername(username));
-
-        if (username == null) {
-            return null;
-        }
-
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, null, userDTO.getAuthorities());
-        authentication.setDetails(userDTO);
-
-        return authentication;
     }
 }

@@ -6,6 +6,8 @@ import top.fallenangel.gateway.entity.UserEntity;
 import top.fallenangel.gateway.repository.UserRepository;
 import top.fallenangel.gateway.service.IUserService;
 
+import java.util.List;
+
 @Service
 public class UserServiceImpl implements IUserService {
     private final UserRepository userRepository;
@@ -22,5 +24,10 @@ public class UserServiceImpl implements IUserService {
     @Override
     public UserEntity findByUsername(String username) {
         return userRepository.findByUsername(username);
+    }
+
+    @Override
+    public List<UserEntity> findAll() {
+        return userRepository.findAll();
     }
 }
