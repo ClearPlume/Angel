@@ -6,7 +6,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import top.fallenangel.gateway.confige.TokenConfig;
-import top.fallenangel.gateway.dto.UserDTO;
+import top.fallenangel.gateway.secutiry.UserDTO;
 
 import java.util.Calendar;
 import java.util.Date;

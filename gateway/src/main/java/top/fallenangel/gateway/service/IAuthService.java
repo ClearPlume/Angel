@@ -1,9 +1,9 @@
 package top.fallenangel.gateway.service;
 
-import top.fallenangel.gateway.entity.AuthEntity;
+import top.fallenangel.gateway.entity.ApiEntity;
 
 import java.util.List;
 
 public interface IAuthService {
-    List<AuthEntity> selectAllByRoleId(Integer roleId);
+    List<ApiEntity> selectAllByRoleId(Integer roleId);
 }

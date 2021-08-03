@@ -4,7 +4,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import top.fallenangel.gateway.dto.UserDTO;
+import top.fallenangel.gateway.secutiry.UserDTO;
 import top.fallenangel.gateway.entity.UserEntity;
 import top.fallenangel.gateway.repository.UserRepository;
 

@@ -12,19 +12,22 @@ public interface RoleRepository extends JpaRepository<RoleEntity, Integer> {
     @Query(value = "select code\n" +
             "from t_role r\n" +
             "where exists(select role_id\n" +
-            "             from t_role_auth ra\n" +
+            "             from t_role_api ra\n" +
             "             where exists(select id\n" +
-            "                          from t_auth\n" +
+            "                          from t_api\n" +
             "                          where uri = :uri\n" +
             "                            and id = ra.auth_id)\n" +
             "               and role_id = r.id)", nativeQuery = true)
     List<String> selectAllCodeByAuthUri(@Param("uri") String uri);
 
     @Modifying
-    @Query(value = "delete from t_role_auth where role_id = :id", nativeQuery = true)
+    @Query(value = "delete from t_role_api where role_id = :id", nativeQuery = true)
     void deleteBatchById(@Param("id") Integer id);
 
     @Modifying
-    @Query(value = "insert into t_role_auth values (:authId, :roleId)", nativeQuery = true)
+    @Query(value = "insert into t_role_api values (:authId, :roleId)", nativeQuery = true)
     void insert(@Param("roleId") Integer roleId, @Param("authId") Integer authId);
+
+    @Query(value = "select id, code, name, description, enable from t_role where code = :code", nativeQuery = true)
+    RoleEntity selectByCode(@Param("code") String code);
 }

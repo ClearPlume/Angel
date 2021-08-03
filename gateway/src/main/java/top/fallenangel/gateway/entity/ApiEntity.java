@@ -10,8 +10,8 @@ import javax.persistence.*;
 @Getter
 @Setter
 @ToString
-@Table(name = "t_auth", schema = "sso")
-public class AuthEntity {
+@Table(name = "t_api", schema = "sso")
+public class ApiEntity {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +23,10 @@ public class AuthEntity {
     @Column(name = "uri", length = 32, nullable = false)
     private String uri;
 
+    @Column(name = "method", length = 16, nullable = false)
+    private String method;
+
     @OneToOne
     @JoinColumn(name = "parent", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    private AuthEntity parent;
+    private ApiEntity parent;
 }

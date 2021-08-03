@@ -1,4 +1,4 @@
-package top.fallenangel.gateway.dto;
+package top.fallenangel.gateway.secutiry;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

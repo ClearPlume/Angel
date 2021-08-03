@@ -4,8 +4,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.fallenangel.common.Util;
-import top.fallenangel.gateway.dto.auth.SetRoleAuthParam;
 import top.fallenangel.gateway.entity.RoleEntity;
+import top.fallenangel.gateway.param.SetRoleAuthParam;
 import top.fallenangel.gateway.repository.RoleRepository;
 import top.fallenangel.gateway.service.IRoleService;
 import top.fallenangel.gateway.util.Constraint;
@@ -41,5 +41,10 @@ public class RoleServiceImpl implements IRoleService {
         redisTemplate.opsForValue().set(Constraint.AUTH_VERSION_KEY, Util.uuid());
 
         return true;
+    }
+
+    @Override
+    public RoleEntity getRoleInfo(Integer roleId) {
+        return roleRepository.findById(roleId).orElseThrow(() -> new RuntimeException(String.format("不存在id为%d的角色", roleId)));
     }
 }

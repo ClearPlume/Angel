@@ -5,4 +5,8 @@ import top.fallenangel.gateway.entity.UserEntity;
 
 public interface UserRepository extends JpaRepository<UserEntity, Integer> {
     UserEntity findByUsername(String username);
+
+    // void logout(String username);
+
+    // void login(String username);
 }

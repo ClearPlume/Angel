@@ -9,29 +9,26 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 import top.fallenangel.common.Util;
-import top.fallenangel.gateway.entity.AuthEntity;
-import top.fallenangel.gateway.repository.AuthRepository;
+import top.fallenangel.gateway.entity.ApiEntity;
+import top.fallenangel.gateway.repository.ApiRepository;
 import top.fallenangel.gateway.repository.RoleRepository;
 import top.fallenangel.gateway.util.Constraint;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 public class JdbcSecurityMetadataSource implements FilterInvocationSecurityMetadataSource {
     private final StringRedisTemplate redisTemplate;
-    private final AuthRepository authRepository;
+    private final ApiRepository apiRepository;
     private final RoleRepository roleRepository;
 
     private String authVersion;
     private Map<RequestMatcher, List<ConfigAttribute>> metadata;
 
-    public JdbcSecurityMetadataSource(StringRedisTemplate redisTemplate, AuthRepository authRepository, RoleRepository roleRepository) {
+    public JdbcSecurityMetadataSource(StringRedisTemplate redisTemplate, ApiRepository apiRepository, RoleRepository roleRepository) {
         this.redisTemplate = redisTemplate;
-        this.authRepository = authRepository;
+        this.apiRepository = apiRepository;
         this.roleRepository = roleRepository;
 
         authVersion = getAuthVersion();
@@ -43,7 +40,8 @@ public class JdbcSecurityMetadataSource implements FilterInvocationSecurityMetad
         if (object instanceof FilterInvocation) {
             FilterInvocation invocation = (FilterInvocation) object;
             String uri = invocation.getHttpRequest().getRequestURI();
-            RequestMatcher matcher = new AntPathRequestMatcher(uri);
+            String method = invocation.getHttpRequest().getMethod();
+            RequestMatcher matcher = new AntPathRequestMatcher(uri, method);
 
             if (authVersion == null || !authVersion.equals(getAuthVersion())) {
                 metadata = getMetadata();
@@ -83,12 +81,12 @@ public class JdbcSecurityMetadataSource implements FilterInvocationSecurityMetad
         } else {
             metadata.clear();
         }
-        List<AuthEntity> authEntities = authRepository.findAll();
+        List<ApiEntity> authEntities = apiRepository.findAll();
 
-        for (AuthEntity authEntity : authEntities) {
-            if (!authEntity.getUri().isBlank()) {
-                List<String> roles = roleRepository.selectAllCodeByAuthUri(authEntity.getUri());
-                metadata.put(new AntPathRequestMatcher(authEntity.getUri()), roles.stream().map(SecurityConfig::new).collect(Collectors.toList()));
+        for (ApiEntity apiEntity : authEntities) {
+            if (!apiEntity.getUri().isBlank()) {
+                List<String> roles = roleRepository.selectAllCodeByAuthUri(apiEntity.getUri());
+                metadata.put(new AntPathRequestMatcher(apiEntity.getUri(), apiEntity.getMethod()), roles.stream().map(role -> new SecurityConfig("ROLE_" + role)).collect(Collectors.toList()));
             }
         }
 

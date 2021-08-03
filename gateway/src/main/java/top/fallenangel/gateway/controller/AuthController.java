@@ -1,12 +1,14 @@
 package top.fallenangel.gateway.controller;
 
 import org.springframework.web.bind.annotation.*;
-import top.fallenangel.gateway.dto.auth.SetRoleAuthParam;
-import top.fallenangel.gateway.entity.AuthEntity;
+import top.fallenangel.gateway.entity.ApiEntity;
 import top.fallenangel.gateway.entity.RoleEntity;
-import top.fallenangel.response.Result;
+import top.fallenangel.gateway.param.SetRoleAuthParam;
 import top.fallenangel.gateway.service.IAuthService;
 import top.fallenangel.gateway.service.IRoleService;
+import top.fallenangel.gateway.service.IUserService;
+import top.fallenangel.gateway.vo.UserVO;
+import top.fallenangel.response.Result;
 
 import java.util.List;
 
@@ -15,23 +17,25 @@ import java.util.List;
 public class AuthController {
     private final IRoleService roleService;
     private final IAuthService authService;
+    private final IUserService userService;
 
-    public AuthController(IRoleService roleService, IAuthService authService) {
+    public AuthController(IRoleService roleService, IAuthService authService, IUserService userService) {
         this.roleService = roleService;
         this.authService = authService;
+        this.userService = userService;
     }
 
-    @PostMapping("roleList")
+    @GetMapping("roleList")
     public Result<List<RoleEntity>> getRoleList() {
         return Result.ok(roleService.findAll());
     }
 
-    @PostMapping("getRoleAuth/{roleId}")
-    public Result<List<AuthEntity>> getRoleAuth(@PathVariable Integer roleId) {
+    @GetMapping("getRoleAuth/{roleId}")
+    public Result<List<ApiEntity>> getRoleAuth(@PathVariable Integer roleId) {
         return Result.ok(authService.selectAllByRoleId(roleId));
     }
 
-    @PostMapping("setRoleAuth")
+    @PutMapping("setRoleAuth")
     public Result<Void> setRoleAuth(@RequestBody SetRoleAuthParam param) {
         boolean success = roleService.setRoleAuth(param);
 
@@ -40,5 +44,10 @@ public class AuthController {
         } else {
             return Result.error();
         }
+    }
+
+    @PutMapping("assignUserRole/{userId}/{roleId}")
+    public Result<UserVO> assignUserRole(@PathVariable Integer userId, @PathVariable Integer roleId) {
+        return Result.ok(userService.updateUserRole(userId, roleId));
     }
 }

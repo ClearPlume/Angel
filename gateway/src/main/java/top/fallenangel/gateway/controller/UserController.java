@@ -1,12 +1,13 @@
 package top.fallenangel.gateway.controller;
 
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 import top.fallenangel.gateway.entity.RoleEntity;
-import top.fallenangel.gateway.entity.UserEntity;
+import top.fallenangel.gateway.param.UserRegisterParam;
+import top.fallenangel.gateway.param.UserUpdateParam;
 import top.fallenangel.gateway.service.IUserService;
+import top.fallenangel.gateway.vo.UserVO;
+import top.fallenangel.response.ResponseCode;
 import top.fallenangel.response.Result;
 
 import java.util.List;
@@ -20,18 +21,43 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("userList")
-    public Result<List<UserEntity>> userList() {
+    @PostMapping("register")
+    public Result<UserVO> register(@RequestBody UserRegisterParam user) {
+        try {
+            return Result.ok(userService.save(user));
+        } catch (RuntimeException e) {
+            return Result.create(ResponseCode.REGISTER_FAILURE);
+        }
+    }
+
+    @DeleteMapping("delete/{username}")
+    public Result<Void> delete(@PathVariable String username) {
+        try {
+            userService.delete(username);
+            return Result.ok();
+        } catch (RuntimeException e) {
+            return Result.create(ResponseCode.USER_NOT_EXISTS);
+        }
+    }
+
+    @PutMapping("modify")
+    public Result<Void> modify(@RequestBody UserUpdateParam user) {
+        userService.update(user);
+        return Result.ok();
+    }
+
+    @GetMapping("list")
+    public Result<List<UserVO>> list() {
         return Result.ok(userService.findAll());
     }
 
-    @PostMapping("userInfo/{username}")
-    public Result<UserEntity> userInfo(@PathVariable String username) {
-        return Result.ok(userService.findByUsername(username));
+    @GetMapping("info")
+    public Result<UserVO> info(Authentication authentication) {
+        return Result.ok(userService.findByUsername(authentication.getName()));
     }
 
-    @PostMapping("userRole/{username}")
-    public Result<RoleEntity> userRole(@PathVariable String username) {
+    @GetMapping("role/{username}")
+    public Result<RoleEntity> role(@PathVariable String username) {
         return Result.ok(userService.findRoleByUsername(username));
     }
 }

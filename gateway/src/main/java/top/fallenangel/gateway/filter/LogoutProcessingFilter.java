@@ -21,6 +21,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * 处理退出逻辑，拦截“POST /user/logout”请求，在真正执行“退出登录”这个操作之前，从请求头中获取用户Token，
+ * 将Authentication存入SecurityContext中
+ */
 @Component
 public class LogoutProcessingFilter extends LogoutFilter {
     private final AuthenticationUtil authenticationUtil;
@@ -32,6 +36,7 @@ public class LogoutProcessingFilter extends LogoutFilter {
         this.authenticationUtil = authenticationUtil;
         this.tokenUtil = tokenUtil;
         this.redisTemplate = redisTemplate;
+        setFilterProcessesUrl("/user/logout");
     }
 
     @Override
@@ -39,7 +44,7 @@ public class LogoutProcessingFilter extends LogoutFilter {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
 
-        if (request.getRequestURI().equals("/logout")) {
+        if (request.getRequestURI().equals("/user/logout")) {
             String token = request.getHeader(TokenUtil.TOKEN_HEADER);
 
             if (token == null) {

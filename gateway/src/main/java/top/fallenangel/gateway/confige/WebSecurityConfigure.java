@@ -32,6 +32,7 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
     private final TokenConfig tokenConfig;
     private final TokenUtil tokenUtil;
     private final AuthenticationUtil authenticationUtil;
+    private final AnonymousUriConfig anonymousUriConfig;
     private final UserRepository userRepository;
 
     private final LogoutProcessingFilter logoutProcessingFilter;
@@ -42,12 +43,13 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
 
     private final StringRedisTemplate redisTemplate;
 
-    public WebSecurityConfigure(UserDetailsServiceImpl userDetailsService, PasswordEncoder passwordEncoder, TokenConfig tokenConfig, TokenUtil tokenUtil, AuthenticationUtil authenticationUtil, UserRepository userRepository, LogoutProcessingFilter logoutProcessingFilter, JdbcSecurityMetadataSource securityMetadataSource, RoleBaseAccessDecisionManager accessDecisionManager, NoAccessHandler noAccessHandler, NoLoginEntryPoint noLoginEntryPoint, StringRedisTemplate redisTemplate) {
+    public WebSecurityConfigure(UserDetailsServiceImpl userDetailsService, PasswordEncoder passwordEncoder, TokenConfig tokenConfig, TokenUtil tokenUtil, AuthenticationUtil authenticationUtil, AnonymousUriConfig anonymousUriConfig, UserRepository userRepository, LogoutProcessingFilter logoutProcessingFilter, JdbcSecurityMetadataSource securityMetadataSource, RoleBaseAccessDecisionManager accessDecisionManager, NoAccessHandler noAccessHandler, NoLoginEntryPoint noLoginEntryPoint, StringRedisTemplate redisTemplate) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.tokenConfig = tokenConfig;
         this.tokenUtil = tokenUtil;
         this.authenticationUtil = authenticationUtil;
+        this.anonymousUriConfig = anonymousUriConfig;
         this.userRepository = userRepository;
         this.logoutProcessingFilter = logoutProcessingFilter;
         this.securityMetadataSource = securityMetadataSource;
@@ -97,6 +99,6 @@ public class WebSecurityConfigure extends WebSecurityConfigurerAdapter {
     }
 
     private TokenAuthenticationFilter tokenAuthenticationFilter() throws Exception {
-        return new TokenAuthenticationFilter(authenticationManager(), tokenUtil, authenticationUtil, redisTemplate);
+        return new TokenAuthenticationFilter(authenticationManager(), tokenUtil, authenticationUtil, redisTemplate, anonymousUriConfig);
     }
 }

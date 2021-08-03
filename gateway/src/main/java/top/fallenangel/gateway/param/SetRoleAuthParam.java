@@ -1,4 +1,4 @@
-package top.fallenangel.gateway.dto.auth;
+package top.fallenangel.gateway.param;
 
 import lombok.Data;
 

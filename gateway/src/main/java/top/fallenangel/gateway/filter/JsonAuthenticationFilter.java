@@ -8,11 +8,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import top.fallenangel.common.Util;
 import top.fallenangel.gateway.confige.TokenConfig;
-import top.fallenangel.gateway.dto.UserDTO;
+import top.fallenangel.gateway.entity.UserEntity;
 import top.fallenangel.gateway.repository.UserRepository;
+import top.fallenangel.gateway.secutiry.UserDTO;
 import top.fallenangel.gateway.util.TokenUtil;
 import top.fallenangel.response.ResponseCode;
 import top.fallenangel.response.Result;
@@ -27,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 处理登录逻辑，包含以下内容：
  * <p/>
- * &emsp;&emsp;1. 拦截“GET /login”请求，从请求体获取用户信息
+ * &emsp;&emsp;1. 拦截“GET /user/login”请求，从请求体获取用户信息
  * <br />
  * &emsp;&emsp;2. 登录成功后的逻辑
  * <br />
@@ -43,9 +45,10 @@ public class JsonAuthenticationFilter extends UsernamePasswordAuthenticationFilt
         this.userRepository = userRepository;
         this.tokenUtil = tokenUtil;
         this.redisTemplate = redisTemplate;
-        setAuthenticationManager(authenticationManager);
-
         this.tokenConfig = tokenConfig;
+
+        setAuthenticationManager(authenticationManager);
+        setFilterProcessesUrl("/user/login");
     }
 
     @Override
@@ -66,8 +69,13 @@ public class JsonAuthenticationFilter extends UsernamePasswordAuthenticationFilt
 
             username = username.trim();
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, password);
-            authentication.setDetails(new UserDTO(userRepository.findByUsername(username)));
+            UserEntity userDetails = userRepository.findByUsername(username);
 
+            if (userDetails == null) {
+                throw new UsernameNotFoundException(String.format("不存在用户：%s", username));
+            }
+
+            authentication.setDetails(new UserDTO(userDetails));
             return getAuthenticationManager().authenticate(authentication);
         } else {
             return super.attemptAuthentication(request, response);
@@ -90,6 +98,8 @@ public class JsonAuthenticationFilter extends UsernamePasswordAuthenticationFilt
 
         redisTemplate.opsForValue().set(tokenUtil.getRedisKey(username, "token"), token, refreshTokenTimeout, TimeUnit.DAYS);
         redisTemplate.opsForValue().set(tokenUtil.getRedisKey(username, "refreshToken"), refreshToken, refreshTokenTimeout, TimeUnit.DAYS);
+
+        // userRepository.login(username);
 
         Util.responseJson(response, Result.ok(data));
     }

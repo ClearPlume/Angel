@@ -3,7 +3,7 @@ package top.fallenangel.gateway.util;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-import top.fallenangel.gateway.dto.UserDTO;
+import top.fallenangel.gateway.secutiry.UserDTO;
 import top.fallenangel.gateway.repository.UserRepository;
 
 @Component
