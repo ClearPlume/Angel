@@ -19,4 +19,9 @@ public class AuthServiceImpl implements IAuthService {
     public List<ApiEntity> selectAllByRoleId(Integer roleId) {
         return apiRepository.selectAllByRoleId(roleId);
     }
+
+    @Override
+    public List<ApiEntity> findAll() {
+        return apiRepository.findAll();
+    }
 }

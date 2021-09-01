@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface IAuthService {
     List<ApiEntity> selectAllByRoleId(Integer roleId);
+
+    List<ApiEntity> findAll();
 }

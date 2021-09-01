@@ -25,6 +25,11 @@ public class AuthController {
         this.userService = userService;
     }
 
+    @GetMapping("list")
+    public Result<List<ApiEntity>> getAuthList() {
+        return Result.ok(authService.findAll());
+    }
+
     @GetMapping("roleList")
     public Result<List<RoleEntity>> getRoleList() {
         return Result.ok(roleService.findAll());

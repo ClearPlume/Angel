@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 public class UserTransfer {
     public static UserVO entity2vo(UserEntity entity) {
         UserVO vo = JSON.parseObject(JSON.toJSONString(entity), UserVO.class);
-        vo.setRoleId(entity.getRole().getId());
+        vo.setRole(RoleTransfer.entity2vo(entity.getRole()));
         return vo;
     }
 

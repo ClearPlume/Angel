@@ -1,5 +1,6 @@
 package top.fallenangel.gateway.secutiry;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
@@ -14,9 +15,13 @@ import top.fallenangel.gateway.repository.ApiRepository;
 import top.fallenangel.gateway.repository.RoleRepository;
 import top.fallenangel.gateway.util.Constraint;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class JdbcSecurityMetadataSource implements FilterInvocationSecurityMetadataSource {
     private final StringRedisTemplate redisTemplate;
@@ -39,6 +44,7 @@ public class JdbcSecurityMetadataSource implements FilterInvocationSecurityMetad
     public Collection<ConfigAttribute> getAttributes(Object object) throws IllegalArgumentException {
         if (object instanceof FilterInvocation) {
             FilterInvocation invocation = (FilterInvocation) object;
+            log.info("获取资源<{}>的权限信息", invocation);
             String uri = invocation.getHttpRequest().getRequestURI();
             String method = invocation.getHttpRequest().getMethod();
             RequestMatcher matcher = new AntPathRequestMatcher(uri, method);
@@ -48,7 +54,9 @@ public class JdbcSecurityMetadataSource implements FilterInvocationSecurityMetad
                 setAuthVersion();
             }
 
-            return metadata.get(matcher);
+            List<ConfigAttribute> auths = metadata.get(matcher);
+            log.info("资源<{}>的权限信息：{}", invocation, auths);
+            return auths;
         }
 
         throw new IllegalArgumentException("Object must be a non-null FilterInvocation");
@@ -65,7 +73,9 @@ public class JdbcSecurityMetadataSource implements FilterInvocationSecurityMetad
     }
 
     private String getAuthVersion() {
-        return redisTemplate.opsForValue().get(Constraint.AUTH_VERSION_KEY);
+        String authVersion = redisTemplate.opsForValue().get(Constraint.AUTH_VERSION_KEY);
+        log.info("获取当前权限版本：<{}>", authVersion);
+        return authVersion;
     }
 
     private void setAuthVersion() {
@@ -73,6 +83,7 @@ public class JdbcSecurityMetadataSource implements FilterInvocationSecurityMetad
 
         redisTemplate.opsForValue().set(Constraint.AUTH_VERSION_KEY, version);
         authVersion = version;
+        log.info("设置新的权限版本：<{}>", version);
     }
 
     private Map<RequestMatcher, List<ConfigAttribute>> getMetadata() {
@@ -86,10 +97,14 @@ public class JdbcSecurityMetadataSource implements FilterInvocationSecurityMetad
         for (ApiEntity apiEntity : authEntities) {
             if (!apiEntity.getUri().isBlank()) {
                 List<String> roles = roleRepository.selectAllCodeByAuthUri(apiEntity.getUri());
-                metadata.put(new AntPathRequestMatcher(apiEntity.getUri(), apiEntity.getMethod()), roles.stream().map(role -> new SecurityConfig("ROLE_" + role)).collect(Collectors.toList()));
+                metadata.put(new AntPathRequestMatcher(apiEntity.getUri(), apiEntity.getMethod()), roles.stream()
+                        .map(role -> new SecurityConfig("ROLE_" + role))
+                        .collect(Collectors.toList()));
             }
         }
 
+        log.info("所有资源的权限信息：");
+        metadata.forEach((uri, auth) -> log.info("{} === {}", uri, auth));
         return metadata;
     }
 }
